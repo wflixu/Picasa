@@ -28,116 +28,107 @@ struct ContentView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            
-        }
-        ZStack(alignment: .topLeading) {
-            HStack {
-                Text("x: \(scrollOffset.x)")
 
-                Text("y: \(scrollOffset.y)")
-            }
-            .foregroundStyle(.red)
-            .zIndex(100)
-            if let currentImage = currentImage {
-                ZoomableImageView(image: currentImage)
-                    // 视图铺满整个窗口
-            } else {
-                Text("No Image Selected")
-            }
+            ZStack(alignment: .leading) {
+                HStack {
+                    Text("x: \(scrollOffset.x)")
 
-//            GeometryReader { geometry in
-//                ScrollView([.horizontal, .vertical]) {
-//                    VStack {
-//                        Text("suze: \(geometry.size)")
-//                            .font(.title)
-//                            .foregroundStyle(.red)
-//                    }
-//
-//                    if let currentImage = currentImage {
-
-//                        Image(nsImage: currentImage)
-//                            .resizable()
-//
-//                            .scaleEffect(scale)
-//                            .border(Color.red , width: 4)
-//                            .gesture(
-//                                MagnificationGesture()
-//                                    .onChanged { value in
-//                                        scale = value
-//                                    }
-//                            )
-//                            .gesture(
-//                                DragGesture(minimumDistance: 5)
-//                                    .onChanged { value in
-//
-//                                        scrollOffset.x += value.translation.height
-//                                        scrollOffset.y += value.translation.width
-//                                    }
-//                            )
-//                            .onAppear {
-//                                // 监听 Command 键的按下事件
-//                                NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
-//                                    if event.modifierFlags.contains(.command) {
-//                                        isCommandPressed = true
-//                                    } else {
-//                                        isCommandPressed = false
-//                                    }
-//                                    return event
-//                                }
-//                                NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
-//                                    if isCommandPressed { // 只有按下 Command 键时才缩放
-//                                        let delta = event.scrollingDeltaY
-//
-//                                        scale += delta / 500 // 根据滚轮的滚动量进行缩放
-//                                        return nil // 防止滚动事件传递给其他组件
-//                                    }
-//                                    return event
-//                                }
-//                            }
-//                    } else {
-//                        Text("No Image Selected")
-//                    }
-//                }
-//                .frame(width: geometry.size.width, height: geometry.size.height)
-//                .defaultScrollAnchor(.center)
-            ////                .scrollIndicators(.never)
-            ////                .offset(x: scrollOffset.x, y: scrollOffset.y)
-//                .onChange(of: appState.currentImageURL) { _, newURL in
-//                    print("watch image changeed \(geometry.size)")
-//                    if let url = newURL {
-//                        currentImage = NSImage(contentsOf: url)
-//                    } else {
-//                        loadImage(at: appState.selectedImageIndex)
-//                    }
-//                }
-//            }
-            // 左侧浮动导航条
-            if isNavBarVisible {
-                VStack {
-                    ScrollView {
-                        LazyVStack(spacing: 5) {
-                            ForEach(Array(appState.imageFiles.enumerated()), id: \.offset) { index, imageURL in
-                                ImageThumbnailView(imageURL: imageURL, isSelected: appState.selectedImageIndex == index)
-                                    .onTapGesture {
-                                        loadImage(at: index)
-                                    }
-                            }
-                        }
-
-                        .padding()
-                    }
-                    .scrollIndicators(.never)
+                    Text("y: \(scrollOffset.y)")
                 }
-                .frame(width: 160) // 导航条宽度固定为160
-                .background(Color.gray.opacity(0.4)) // 半透明背景
-                .shadow(radius: 5)
-                .ignoresSafeArea(.container)
-                .zIndex(20) // 确保浮动在主视图上方
+                .background(Color.white)
+                .foregroundStyle(.red)
+                .zIndex(100)
+
+                ScrollView([.horizontal, .vertical]) {
+                    if let currentImage = currentImage {
+                        Image(nsImage: currentImage)
+                            .resizable()
+                            .scaledToFit()
+                            .scaleEffect(scale)
+                            .border(Color.red, width: 4)
+                            .frame(width: currentImage.size.width * scale, height: currentImage.size.height * scale)
+                            .gesture(
+                                MagnificationGesture()
+                                    .onChanged { value in
+                                        scale = value
+                                    }
+                            )
+                            .gesture(
+                                DragGesture(minimumDistance: 5)
+                                    .onChanged { value in
+
+                                        scrollOffset.x += value.translation.height
+                                        scrollOffset.y += value.translation.width
+                                    }
+                            )
+                            .onAppear {
+                                // 监听 Command 键的按下事件
+                                NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
+                                    if event.modifierFlags.contains(.command) {
+                                        isCommandPressed = true
+                                    } else {
+                                        isCommandPressed = false
+                                    }
+                                    return event
+                                }
+                                NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
+                                    if isCommandPressed { // 只有按下 Command 键时才缩放
+                                        let delta = event.scrollingDeltaY
+
+                                        scale += delta / 500 // 根据滚轮的滚动量进行缩放
+                                        return nil // 防止滚动事件传递给其他组件
+                                    }
+                                    return event
+                                }
+                            }
+                    } else {
+                        Text("No Image Selected")
+                    }
+                }
+                .frame(width: geometry.size.width, height: geometry.size.height)
+                .defaultScrollAnchor(.center)
+//                .scrollPosition(id: Binding<(Hashable)?>, anchor: <#T##UnitPoint?#>)
+                .scrollIndicators(.never)
+                //                .offset(x: scrollOffset.x, y: scrollOffset.y)
+                .onChange(of: appState.currentImageURL) { _, newURL in
+                    print("watch image changeed \(geometry.size)")
+                    if let url = newURL {
+                        currentImage = NSImage(contentsOf: url)
+                    } else {
+                        loadImage(at: appState.selectedImageIndex)
+                    }
+                }
+
+                // 左侧浮动导航条
+                if isNavBarVisible {
+                    VStack {
+                        ScrollView {
+                            LazyVStack(spacing: 5) {
+                                ForEach(Array(appState.imageFiles.enumerated()), id: \.offset) { index, imageURL in
+                                    ImageThumbnailView(imageURL: imageURL, isSelected: appState.selectedImageIndex == index)
+                                        .onTapGesture {
+                                            loadImage(at: index)
+                                        }
+                                }
+                            }
+
+                            .padding()
+                        }
+                        .scrollIndicators(.never)
+                    }
+
+                    .frame(width: 160) // 导航条宽度固定为160
+                    .background(Color.gray.opacity(0.4)) // 半透明背景
+                    .shadow(radius: 5)
+//                    .border(Color.blue, width: 8)
+                    .zIndex(20) // 确保浮动在主视图上方
+                }
             }
-        }
-        .frame(width:800, height: 600)
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            .border(Color.black, width: 2)
 //        .edgesIgnoringSafeArea(.all)
-        .onAppear(perform: appearHandler)
+            .onAppear(perform: appearHandler)
+        }
     }
 
     func appearHandler() {
@@ -238,11 +229,11 @@ struct ZoomableImageView: NSViewRepresentable {
         imageView.frame = CGRect(origin: .zero, size: CGSize(width: 800, height: 600))
 
         let scrollView = NSScrollView()
-   
+
         scrollView.hasVerticalScroller = false
         scrollView.hasHorizontalScroller = false
         scrollView.documentView = imageView
-        scrollView.frame = CGRect(origin:.zero, size: CGSize(width: 800, height: 600))
+        scrollView.frame = CGRect(origin: .zero, size: CGSize(width: 800, height: 600))
         let magnificationGestureRecognizer = NSMagnificationGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleMagnification(_:)))
         imageView.addGestureRecognizer(magnificationGestureRecognizer)
 
