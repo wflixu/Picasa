@@ -20,15 +20,15 @@ struct PicasaApp: App {
     init() {
         appDelegate.assignAppState(appState)
 
-        // 获取命令行参数
-        let arguments = CommandLine.arguments
-        logger.info("Launch arguments: \(arguments[1])")
-
-        if  let fileURL = URL(string: arguments[1]) {
-            appDelegate.loadImages(from: fileURL)
-        } else {
-            logger.info("not get fileURL from arguments ")
-        }
+//        // 获取命令行参数
+//        let arguments = CommandLine.arguments
+//        logger.info("Launch arguments: \(arguments[1])")
+//
+//        if  let fileURL = URL(string: arguments[1]) {
+//            appDelegate.loadImages(from: fileURL)
+//        } else {
+//            logger.info("not get fileURL from arguments ")
+//        }
     }
 
     var body: some Scene {
@@ -58,13 +58,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
-        logger.info("application")
+        logger.info("application open urls")
         guard let currentImageURL = urls.first else {
             return
         }
         print("Received file URL: \(currentImageURL)")
         loadImages(from: currentImageURL)
     }
+    
 
     /// Opens the settings window and activates the app.
     @objc func openSettingsWindow() {
@@ -92,13 +93,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func loadImages(from url: URL) {
-        appState?.currentImageURL = url;
+        print("loadImages ....")
         let directory = url.deletingLastPathComponent()
+        guard let appState else { return}
         do {
             let fileURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
-            appState?.imageFiles = fileURLs.filter { ["png", "jpg", "jpeg", "gif", "webp"].contains($0.pathExtension.lowercased()) }
-            appState?.selectedImageIndex = appState?.imageFiles.firstIndex(of: url) ?? 0
-            print("loadimagesfiles ...")
+            appState.imageFiles = fileURLs.filter { ["png", "jpg", "jpeg", "gif", "webp"].contains($0.pathExtension.lowercased()) }
+            appState.selectedImageIndex = appState.imageFiles.firstIndex(where: { $0.path == url.path }) ?? 0
+            appState.currentImageURL = url;
+            print("loadimagesfiles ... \(appState.selectedImageIndex)")
         } catch {
             print("Error reading contents of directory: \(error.localizedDescription)")
         }

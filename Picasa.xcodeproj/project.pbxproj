@@ -16,6 +16,9 @@
 		5CAC9D0C2C846A4500BCF8FA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5CAC9D0B2C846A4500BCF8FA /* Assets.xcassets */; };
 		5CAC9D0F2C846A4500BCF8FA /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5CAC9D0E2C846A4500BCF8FA /* Preview Assets.xcassets */; };
 		5CAC9D182C846AF800BCF8FA /* SDWebImageSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 5CAC9D172C846AF800BCF8FA /* SDWebImageSwiftUI */; };
+		5CB03E162C8C6F7500BEF7C1 /* ZoomableScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB03E152C8C6F7500BEF7C1 /* ZoomableScrollView.swift */; };
+		5CDEAAE02C8CA72C009D0B68 /* ZoomableImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CDEAADF2C8CA72C009D0B68 /* ZoomableImageView.swift */; };
+		5CDEAAE22C8CA901009D0B68 /* MyScrollableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CDEAAE12C8CA901009D0B68 /* MyScrollableView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +34,9 @@
 		5CAC9D102C846A4500BCF8FA /* Picasa.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Picasa.entitlements; sourceTree = "<group>"; };
 		5CAC9D192C846E5200BCF8FA /* PicasaDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PicasaDebug.entitlements; sourceTree = "<group>"; };
 		5CAC9D1A2C84707700BCF8FA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5CB03E152C8C6F7500BEF7C1 /* ZoomableScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomableScrollView.swift; sourceTree = "<group>"; };
+		5CDEAADF2C8CA72C009D0B68 /* ZoomableImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomableImageView.swift; sourceTree = "<group>"; };
+		5CDEAAE12C8CA901009D0B68 /* MyScrollableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyScrollableView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,6 +87,9 @@
 				5CAC9D092C846A4400BCF8FA /* ContentView.swift */,
 				5C268DF32C89962C0089C17A /* ImageThumbnailView.swift */,
 				5CAC9D0B2C846A4500BCF8FA /* Assets.xcassets */,
+				5CDEAADF2C8CA72C009D0B68 /* ZoomableImageView.swift */,
+				5CB03E152C8C6F7500BEF7C1 /* ZoomableScrollView.swift */,
+				5CDEAAE12C8CA901009D0B68 /* MyScrollableView.swift */,
 				5CAC9D102C846A4500BCF8FA /* Picasa.entitlements */,
 				5CAC9D0D2C846A4500BCF8FA /* Preview Content */,
 			);
@@ -176,11 +185,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				5C268DED2C8950530089C17A /* AppState.swift in Sources */,
+				5CDEAAE02C8CA72C009D0B68 /* ZoomableImageView.swift in Sources */,
 				5CAC9D0A2C846A4400BCF8FA /* ContentView.swift in Sources */,
 				5C268DF22C897DC70089C17A /* Util.swift in Sources */,
 				5CAC9D082C846A4400BCF8FA /* PicasaApp.swift in Sources */,
 				5C268DF02C8957D20089C17A /* AppLogger.swift in Sources */,
+				5CDEAAE22C8CA901009D0B68 /* MyScrollableView.swift in Sources */,
 				5C268DF42C89962C0089C17A /* ImageThumbnailView.swift in Sources */,
+				5CB03E162C8C6F7500BEF7C1 /* ZoomableScrollView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

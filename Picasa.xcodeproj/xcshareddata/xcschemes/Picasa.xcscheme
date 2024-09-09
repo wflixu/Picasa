@@ -53,11 +53,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "/Users/lixu/Pictures/bing/wallpaper_2024-08-28.jpg"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = ""
+            argument = "/Users/lixu/Pictures/bing/wallpaper_2024-08-30.jpg"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
