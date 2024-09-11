@@ -50,13 +50,15 @@ struct ZoomableScrollView<Content: View>: NSViewRepresentable {
         }
 
         @objc func handlePan(_ gesture: NSPanGestureRecognizer) {
+            print("handlePan ....")
             guard let imageView = imageView else { return }
 
             guard let scrollView = scrollView else { return }
             // Get the translation (pan movement)
             let translation = gesture.translation(in: imageView)
             let last = scrollView.contentView.bounds.origin
-
+            
+            print("33333 handlePan ....")
             scrollView.contentView.setBoundsOrigin(NSPoint(x: last.x - translation.x, y: last.y - translation.y))
 
             // Reset the translation to avoid cumulative translation over time
@@ -76,6 +78,7 @@ struct ZoomableScrollView<Content: View>: NSViewRepresentable {
         let scrollView = NSScrollView()
         scrollView.hasHorizontalScroller = true
         scrollView.hasVerticalScroller = true
+        scrollView.scrollerStyle = .legacy
         scrollView.borderType = .noBorder
         scrollView.backgroundColor = .gray
         scrollView.autohidesScrollers = false

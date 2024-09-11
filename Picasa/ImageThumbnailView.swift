@@ -17,12 +17,12 @@ struct ImageThumbnailView: View {
                 Image(nsImage: image)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 140, height: 100)
-                    .border(isSelected ? Color.blue : Color.clear, width: 4)
+                    .frame(width: 120, height: 90)
+                    .border(isSelected ? Color.blue : Color.clear, width: 2)
             } else {
                 Rectangle()
                     .fill(Color.gray)
-                    .frame(width: 140, height: 100)
+                    .frame(width: 120, height: 90)
                     .border(isSelected ? Color.blue : Color.clear, width: 4)
             }
         }

@@ -7,6 +7,7 @@
 
 import SDWebImageSwiftUI
 import SwiftUI
+import AppKit
 
 struct ContentView: View {
     @AppLog(category: "ContentView")
@@ -15,7 +16,7 @@ struct ContentView: View {
     @EnvironmentObject var appState: AppState
 
     @State private var currentImage: NSImage?
-    @State private var scale: CGSize = CGSize(width: 1, height: 1)
+    @State private var scale: CGSize = .init(width: 1, height: 1)
 
     @State private var isNavBarVisible: Bool = true
     @State private var isCommandPressed: Bool = false
@@ -31,12 +32,14 @@ struct ContentView: View {
 
     @State private var mouseLocation: CGPoint = .zero
 
+    @State private var showFileSelector = false
+
     var body: some View {
         GeometryReader { geometry in
 
             ZStack(alignment: .leading) {
                 ScrollView {
-                    LazyVStack(spacing: 5) {
+                    LazyVStack(spacing: 4) {
                         ForEach(Array(appState.imageFiles.enumerated()), id: \.offset) { index, imageURL in
                             ImageThumbnailView(imageURL: imageURL, isSelected: appState.selectedImageIndex == index)
                                 .onTapGesture {
@@ -48,31 +51,56 @@ struct ContentView: View {
                     .padding()
                 }
                 .scrollIndicators(.never)
-                .frame(width: 160, height: geometry.size.height) // 导航条宽度固定为160
+                .frame(width: 128, height: geometry.size.height) // 导航条宽度固定为160
                 .background(Color.gray.opacity(0.4)) // 半透明背景
                 .shadow(radius: 5)
-                .position(x: 80, y: geometry.size.height / 2)
+                .position(x: 64, y: geometry.size.height / 2)
                 .zIndex(20) // 确保浮动在主视图上方
 
                 HStack {
                     if let currentImage = currentImage {
-                        ZoomableScrollView(imageSize: currentImage.size,  scale: scale, winSize: geometry.size) {
+                        ZoomableScrollView(imageSize: currentImage.size, scale: scale, winSize: geometry.size) {
                             Image(nsImage: currentImage)
                                 .resizable()
                                 .frame(width: currentImage.size.width, height: currentImage.size.height)
                                 .scaleEffect(scale, anchor: .center)
-                                
-                               
                         }
-                        
+
                     } else {
-                        Text("No Image Selected")
+                        HStack {
+                            Button("Select Image File") {
+                                showFileSelector = true
+                            }
+                            .fileImporter(isPresented: $showFileSelector, allowedContentTypes: [.png, .jpeg]) { result in
+                                handleFileSelect(result)
+                            }
+                        }
                     }
                 }.frame(width: geometry.size.width, height: geometry.size.height)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
-            .border(Color.black, width: 2)
             .onAppear(perform: appearHandler)
+        }
+    }
+
+    func handleFileSelect(_ result: Result<URL, any Error>) {
+        switch result {
+        case .success(let fileUrl):
+            // gain access to the directory
+            let gotAccess = fileUrl.startAccessingSecurityScopedResource()
+            if !gotAccess { return }
+            // access the directory URL
+            print("select file \(fileUrl)")
+                if let appDelegate = appState.appDelegate  {
+                appDelegate.loadImages(from: fileUrl)
+               
+            }
+           
+            // release access
+//            fileUrl.stopAccessingSecurityScopedResource()
+        case .failure(let error):
+            // handle error
+            print(error)
         }
     }
 
@@ -119,8 +147,8 @@ struct ContentView: View {
             if isCommandPressed { // 只有按下 Command 键时才缩放
                 let delta = event.scrollingDeltaY
 
-                scale.width += delta / 500 
-                scale.height += delta / 500// 根据滚轮的滚动量进行缩放
+                scale.width += delta / 500
+                scale.height += delta / 500 // 根据滚轮的滚动量进行缩放
                 return nil // 防止滚动事件传递给其他组件
             }
             return event

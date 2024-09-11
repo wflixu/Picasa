@@ -20,21 +20,34 @@ struct PicasaApp: App {
     init() {
         appDelegate.assignAppState(appState)
 
-//        // 获取命令行参数
-//        let arguments = CommandLine.arguments
-//        logger.info("Launch arguments: \(arguments[1])")
-//
-//        if  let fileURL = URL(string: arguments[1]) {
-//            appDelegate.loadImages(from: fileURL)
-//        } else {
-//            logger.info("not get fileURL from arguments ")
-//        }
+        // 获取命令行参数
+        let arguments = CommandLine.arguments
+        logger.info("Launch arguments: \(arguments[1])")
+
+        if  let fileURL = URL(string: arguments[1]) {
+            appDelegate.loadImages(from: fileURL)
+        } else {
+            logger.info("not get fileURL from arguments ")
+        }
     }
 
     var body: some Scene {
-        WindowGroup(id: "main") {
+        Window("Picasa", id: "main") {
             ContentView()
-        }.environmentObject(appState)
+                .onAppear {
+                    for window in NSApplication.shared.windows {
+                        // 检查窗口的标题是否匹配
+                        if window.title == "Picasa" {
+                            window.titleVisibility = .hidden
+                            window.titlebarAppearsTransparent = true
+
+                            // 移除标题栏的 style mask
+                            window.styleMask.remove(.titled)
+                        }
+                    }
+                }
+        }
+        .environmentObject(appState)
     }
 }
 
@@ -65,7 +78,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         print("Received file URL: \(currentImageURL)")
         loadImages(from: currentImageURL)
     }
-    
 
     /// Opens the settings window and activates the app.
     @objc func openSettingsWindow() {
@@ -95,12 +107,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func loadImages(from url: URL) {
         print("loadImages ....")
         let directory = url.deletingLastPathComponent()
-        guard let appState else { return}
+        guard let appState else { return }
         do {
             let fileURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
             appState.imageFiles = fileURLs.filter { ["png", "jpg", "jpeg", "gif", "webp"].contains($0.pathExtension.lowercased()) }
             appState.selectedImageIndex = appState.imageFiles.firstIndex(where: { $0.path == url.path }) ?? 0
-            appState.currentImageURL = url;
+            appState.currentImageURL = url
             print("loadimagesfiles ... \(appState.selectedImageIndex)")
         } catch {
             print("Error reading contents of directory: \(error.localizedDescription)")
