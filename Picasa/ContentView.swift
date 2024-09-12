@@ -5,9 +5,9 @@
 //  Created by 李旭 on 2024/9/1.
 //
 
+import AppKit
 import SDWebImageSwiftUI
 import SwiftUI
-import AppKit
 
 struct ContentView: View {
     @AppLog(category: "ContentView")
@@ -34,73 +34,117 @@ struct ContentView: View {
 
     @State private var showFileSelector = false
 
+    // ScrollView的偏移状态，用来实现拖动查看图片的不同部分
+    @State private var scrollViewOffset: CGSize = .zero
+    @State private var lastDragPosition: CGSize = .zero
+
+    @State private var scrollViewProxy: ScrollViewProxy? = nil
+
+
     var body: some View {
         GeometryReader { geometry in
 
             ZStack(alignment: .leading) {
-                ScrollView {
-                    LazyVStack(spacing: 4) {
-                        ForEach(Array(appState.imageFiles.enumerated()), id: \.offset) { index, imageURL in
-                            ImageThumbnailView(imageURL: imageURL, isSelected: appState.selectedImageIndex == index)
-                                .onTapGesture {
-                                    loadImage(at: index)
-                                }
+                ScrollViewReader { scroller in
+                    ScrollView {
+                        LazyVStack(spacing: 4) {
+                            ForEach(Array(appState.imageFiles.enumerated()), id: \.offset) { index, imageURL in
+                                ImageThumbnailView(imageURL: imageURL, isSelected: appState.selectedImageIndex == index).id(index)
+                                    .onTapGesture {
+                                        loadImage(at: index)
+                                    }
+                            }
                         }
+
+                        .padding()
+                    }
+                    .scrollIndicators(.never)
+                    .frame(width: 128, height: geometry.size.height) // 导航条宽度固定为160
+                    .background(Color.gray.opacity(0.6)) // 半透明背景
+                    .shadow(radius: 5)
+                    .onAppear {
+                        print("scrollViewProxy ....... init")
+                        scrollViewProxy = scroller
                     }
 
-                    .padding()
+                    // 确保浮动在主视图上方
                 }
-                .scrollIndicators(.never)
-                .frame(width: 128, height: geometry.size.height) // 导航条宽度固定为160
-                .background(Color.gray.opacity(0.4)) // 半透明背景
-                .shadow(radius: 5)
                 .position(x: 64, y: geometry.size.height / 2)
-                .zIndex(20) // 确保浮动在主视图上方
+                .zIndex(20)
 
                 HStack {
                     if let currentImage = currentImage {
-                        ZoomableScrollView(imageSize: currentImage.size, scale: scale, winSize: geometry.size) {
+                        ScrollView([.horizontal, .vertical], showsIndicators: false) {
+                            // 使用 Image 组件加载图片，并设置其大小大于 ScrollView 的视图大小
                             Image(nsImage: currentImage)
                                 .resizable()
                                 .frame(width: currentImage.size.width, height: currentImage.size.height)
                                 .scaleEffect(scale, anchor: .center)
+                                .offset(x: scrollViewOffset.width, y: scrollViewOffset.height) // 通过偏移来控制图片的位置
+                                .gesture(
+                                    DragGesture()
+                                        .onChanged { value in
+                                            // 计算拖动的偏移量，并更新状态
+                                            let newOffset = CGSize(
+                                                width: lastDragPosition.width + value.translation.width,
+                                                height: lastDragPosition.height + value.translation.height
+                                            )
+
+                                            // 将新的偏移值设置到视图中
+                                            scrollViewOffset = newOffset
+                                        }
+                                        .onEnded { _ in
+                                            // 保存拖动结束时的位置
+                                            lastDragPosition = scrollViewOffset
+                                        }
+                                )
+                                .onTapGesture {
+                                    appState.appDelegate?.startShowWindowTitlebar()
+                                   
+                                }
                         }
+                        .clipped() // 保证视图的边缘不显示超出内容
 
                     } else {
                         HStack {
                             Button("Select Image File") {
                                 showFileSelector = true
                             }
-                            .fileImporter(isPresented: $showFileSelector, allowedContentTypes: [.png, .jpeg]) { result in
+                            .fileImporter(isPresented: $showFileSelector, allowedContentTypes: [.png, .jpeg, .gif, .webP]) { result in
                                 handleFileSelect(result)
                             }
                         }
                     }
                 }.frame(width: geometry.size.width, height: geometry.size.height)
+                    .zIndex(0)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
             .onAppear(perform: appearHandler)
         }
     }
-
+    
     func handleFileSelect(_ result: Result<URL, any Error>) {
         switch result {
         case .success(let fileUrl):
             // gain access to the directory
             let gotAccess = fileUrl.startAccessingSecurityScopedResource()
-            if !gotAccess { return }
+            if !gotAccess { 
+                logger.warning("not got access")
+                return }
             // access the directory URL
-            print("select file \(fileUrl)")
-                if let appDelegate = appState.appDelegate  {
+        
+            if let appDelegate = appState.appDelegate {
                 appDelegate.loadImages(from: fileUrl)
-               
+                loadImage(at: appState.selectedImageIndex)
+            } else {
+                logger.warning("not appDelegate")
             }
-           
-            // release access
+
+        // release access
 //            fileUrl.stopAccessingSecurityScopedResource()
         case .failure(let error):
             // handle error
-            print(error)
+                logger.error("error: \(error)")
         }
     }
 
@@ -117,6 +161,7 @@ struct ContentView: View {
     }
 
     private func loadImage(at index: Int) {
+        print("loadImage ........")
         guard appState.imageFiles.indices.contains(index) else { return }
         // 获取图片 URL
         let url = appState.imageFiles[index]
@@ -124,6 +169,7 @@ struct ContentView: View {
         // 更新 AppState 中的 currentImageURL 和 selectedImageIndex
         appState.currentImageURL = url
         appState.selectedImageIndex = index
+        scrollViewProxy?.scrollTo(index)
 
         // 尝试加载图像
         if let image = NSImage(contentsOf: url) {
@@ -164,34 +210,6 @@ struct ContentView: View {
                 return nil
             default:
                 return event
-            }
-        }
-    }
-
-    // 显示标题栏和按钮
-    private func showTitleBar() {
-        if let window = window {
-            withAnimation {
-                window.titleVisibility = .visible
-                window.standardWindowButton(.closeButton)?.isHidden = false
-                window.standardWindowButton(.miniaturizeButton)?.isHidden = false
-                window.standardWindowButton(.zoomButton)?.isHidden = false
-            }
-        }
-        // 启动10秒定时器后隐藏
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            hideTitleBar()
-        }
-    }
-
-    // 隐藏标题栏和按钮
-    private func hideTitleBar() {
-        if let window = window {
-            withAnimation {
-                window.titleVisibility = .hidden
-                window.standardWindowButton(.closeButton)?.isHidden = true
-                window.standardWindowButton(.miniaturizeButton)?.isHidden = true
-                window.standardWindowButton(.zoomButton)?.isHidden = true
             }
         }
     }

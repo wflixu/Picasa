@@ -74,21 +74,5 @@
                 </array>
             </dict>
         </array>
-        <key>NSExtensions</key>
-        <array>
-            <dict>
-                <key>NSExtensionPointIdentifier</key>
-                <string>com.apple.finder.sync</string>
-
-                <key>NSExtension</key>
-                <dict>
-                    <key>NSExtensionAttributes</key>
-                    <dict>
-                        <key>NSExtensionFileTypeIcon</key>
-                        <string>public.jpeg</string>
-                    </dict>
-                </dict>
-            </dict>
-        </array>
     </dict>
 </plist>
