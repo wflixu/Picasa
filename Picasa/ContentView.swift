@@ -25,7 +25,7 @@ struct ContentView: View {
 
     @State var scrollOffset: CGPoint = .zero
 
-    @State var scaleAnchor: UnitPoint = .init(x: 0.5, y: 0.5)
+    @State private var anchorPoint: UnitPoint = .init(x: 1, y: 1)
 
     @State private var magnification: CGFloat = 1.0
     @State private var offset: CGSize = .zero
@@ -39,7 +39,6 @@ struct ContentView: View {
     @State private var lastDragPosition: CGSize = .zero
 
     @State private var scrollViewProxy: ScrollViewProxy? = nil
-
 
     var body: some View {
         GeometryReader { geometry in
@@ -72,6 +71,18 @@ struct ContentView: View {
                 .position(x: 64, y: geometry.size.height / 2)
                 .zIndex(20)
 
+//                HStack {
+//                    Text("anchor point: \(anchorPoint)")
+//                        .font(.title)
+//                        .foregroundColor(.red)
+//
+//                    Text("scale: \(scale)")
+//                        .font(.title)
+//                        .foregroundColor(.blue)
+//
+//                }.position(x: geometry.size.width / 2, y: 40)
+//                    .zIndex(40)
+
                 HStack {
                     if let currentImage = currentImage {
                         ScrollView([.horizontal, .vertical], showsIndicators: false) {
@@ -79,7 +90,7 @@ struct ContentView: View {
                             Image(nsImage: currentImage)
                                 .resizable()
                                 .frame(width: currentImage.size.width, height: currentImage.size.height)
-                                .scaleEffect(scale, anchor: .center)
+                                .scaleEffect(scale, anchor: anchorPoint)
                                 .offset(x: scrollViewOffset.width, y: scrollViewOffset.height) // 通过偏移来控制图片的位置
                                 .gesture(
                                     DragGesture()
@@ -98,9 +109,9 @@ struct ContentView: View {
                                             lastDragPosition = scrollViewOffset
                                         }
                                 )
+
                                 .onTapGesture {
-                                    appState.appDelegate?.startShowWindowTitlebar()
-                                   
+//                                    appState.appDelegate?.startShowWindowTitlebar()
                                 }
                         }
                         .clipped() // 保证视图的边缘不显示超出内容
@@ -119,20 +130,22 @@ struct ContentView: View {
                     .zIndex(0)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
+            
             .onAppear(perform: appearHandler)
         }
     }
-    
+
     func handleFileSelect(_ result: Result<URL, any Error>) {
         switch result {
         case .success(let fileUrl):
             // gain access to the directory
             let gotAccess = fileUrl.startAccessingSecurityScopedResource()
-            if !gotAccess { 
+            if !gotAccess {
                 logger.warning("not got access")
-                return }
+                return
+            }
             // access the directory URL
-        
+
             if let appDelegate = appState.appDelegate {
                 appDelegate.loadImages(from: fileUrl)
                 loadImage(at: appState.selectedImageIndex)
@@ -144,7 +157,7 @@ struct ContentView: View {
 //            fileUrl.stopAccessingSecurityScopedResource()
         case .failure(let error):
             // handle error
-                logger.error("error: \(error)")
+            logger.error("error: \(error)")
         }
     }
 
@@ -192,7 +205,13 @@ struct ContentView: View {
         NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
             if isCommandPressed { // 只有按下 Command 键时才缩放
                 let delta = event.scrollingDeltaY
-
+//                let localPos = event.locationInWindow
+//                if let window = NSApplication.shared.windows.first {
+//                    self.anchorPoint = UnitPoint(
+//                        x: localPos.x / window.frame.width,
+//                        y: 1 - localPos.y / window.frame.height
+//                    )
+//                }
                 scale.width += delta / 500
                 scale.height += delta / 500 // 根据滚轮的滚动量进行缩放
                 return nil // 防止滚动事件传递给其他组件

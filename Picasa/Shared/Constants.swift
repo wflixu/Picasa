@@ -7,9 +7,9 @@
 
 import Foundation
 
-
 enum Constants {
-
+    /// The version string in the app's bundle.
+    static let appVersion = Bundle.main.versionString!
 
     /// The bundle identifier of the app.
     static let bundleIdentifier = Bundle.main.bundleIdentifier!
@@ -20,7 +20,6 @@ enum Constants {
 
     /// The identifier for the permissions window.
     static let permissionsWindowID = "PermissionsWindow"
-    
+
     static let dirBookmarkDataKey = "PICASA_DIRS"
 }
-

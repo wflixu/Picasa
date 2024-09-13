@@ -39,9 +39,9 @@ struct PicasaApp: App {
         .environmentObject(appState)
 
         SettingsWindow(appState: appState, onAppear: {})
-       
+
         MenuBarExtra(
-            "Picasa", image:"menubarIcon", isInserted: $showMenuBarExtra
+            "Picasa", image: "menubarIcon", isInserted: $showMenuBarExtra
         ) {
             MenuBarView()
         }.environmentObject(appState)
@@ -75,11 +75,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         for window in NSApplication.shared.windows {
             // 检查窗口的标题是否匹配
             if window.title == "Picasa" {
-                window.titleVisibility = .hidden
-                window.titlebarAppearsTransparent = true
-
+//                window.titleVisibility = .hidden
+//                window.titlebarAppearsTransparent = true // 标题栏透明
+//                window.isOpaque = false // 设置窗口为非不透明
+//                window.isMovable = true
+                
                 // 移除标题栏的 style mask
-                window.styleMask.remove(.titled)
+//                window.styleMask.remove(.titled)
             }
         }
     }

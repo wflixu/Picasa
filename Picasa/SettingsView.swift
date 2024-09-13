@@ -54,8 +54,8 @@ struct SettingsView: View {
 //            AdvancedSettingsPane()
 //        case .updates:
 //            UpdatesSettingsPane()
-//        case .about:
-//            AboutSettingsPane()
+        case .about:
+            AboutSettingsPane()
         default:
             HStack {
                 Text("detailView")

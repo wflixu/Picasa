@@ -19,6 +19,7 @@
 		5CA6413E2C928FAC00776714 /* NavigationIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA6413D2C928FAC00776714 /* NavigationIdentifier.swift */; };
 		5CA641432C92987600776714 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = 5CA641422C92987600776714 /* LaunchAtLogin */; };
 		5CA641452C92989200776714 /* GeneralSettingsPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA641442C92989200776714 /* GeneralSettingsPane.swift */; };
+		5CABF8202C9479AB00BAB122 /* AboutSettingsPane.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CABF81F2C9479AB00BAB122 /* AboutSettingsPane.swift */; };
 		5CAC9D082C846A4400BCF8FA /* PicasaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CAC9D072C846A4400BCF8FA /* PicasaApp.swift */; };
 		5CAC9D0A2C846A4400BCF8FA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CAC9D092C846A4400BCF8FA /* ContentView.swift */; };
 		5CAC9D0C2C846A4500BCF8FA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5CAC9D0B2C846A4500BCF8FA /* Assets.xcassets */; };
@@ -38,6 +39,7 @@
 		5CA6413B2C92896E00776714 /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
 		5CA6413D2C928FAC00776714 /* NavigationIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NavigationIdentifier.swift; path = ../NavigationIdentifier.swift; sourceTree = "<group>"; };
 		5CA641442C92989200776714 /* GeneralSettingsPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsPane.swift; sourceTree = "<group>"; };
+		5CABF81F2C9479AB00BAB122 /* AboutSettingsPane.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSettingsPane.swift; sourceTree = "<group>"; };
 		5CAC9D042C846A4400BCF8FA /* Picasa.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Picasa.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5CAC9D072C846A4400BCF8FA /* PicasaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PicasaApp.swift; path = ../PicasaApp.swift; sourceTree = "<group>"; };
 		5CAC9D092C846A4400BCF8FA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ContentView.swift; path = ../ContentView.swift; sourceTree = "<group>"; };
@@ -82,6 +84,7 @@
 		5CA6413F2C92907100776714 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				5CABF81F2C9479AB00BAB122 /* AboutSettingsPane.swift */,
 				5CA58CB62C91D79600AFB422 /* SettingsWindow.swift */,
 				5CA6413D2C928FAC00776714 /* NavigationIdentifier.swift */,
 				5CA58CBA2C91D88700AFB422 /* SettingsView.swift */,
@@ -230,6 +233,7 @@
 				5CAC9D0A2C846A4400BCF8FA /* ContentView.swift in Sources */,
 				5C268DF22C897DC70089C17A /* Util.swift in Sources */,
 				5CA58CBB2C91D88700AFB422 /* SettingsView.swift in Sources */,
+				5CABF8202C9479AB00BAB122 /* AboutSettingsPane.swift in Sources */,
 				5CAC9D082C846A4400BCF8FA /* PicasaApp.swift in Sources */,
 				5C268DF02C8957D20089C17A /* AppLogger.swift in Sources */,
 				5CA641452C92989200776714 /* GeneralSettingsPane.swift in Sources */,
