@@ -13,27 +13,37 @@ struct PicasaApp: App {
     @AppLog(category: "PicasaApp")
     private var logger
 
+    @Environment(\.openWindow) private var openWindow
+
+    @AppStorage("showMenuBarExtra") private var showMenuBarExtra = true
+
     // 设置 App Delegate 以响应 open file 请求
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @ObservedObject var appState = AppState()
 
     init() {
+        logger.info("app init .....")
         appDelegate.assignAppState(appState)
-
-        // 获取命令行参数
-        let arguments = CommandLine.arguments
-        logger.info("Launch arguments: \(arguments[1])")
-
-        if  let fileURL = URL(string: arguments[1]) {
-            appDelegate.loadImages(from: fileURL)
-        } else {
-            logger.info("not get fileURL from arguments ")
-        }
     }
 
     var body: some Scene {
-        WindowGroup(id: "main") {
-            ContentView()
+        WindowGroup("Picasa", id: "main") {
+            ContentView().onAppear {
+                if appState.showCurDirImg && appState.dirs.isEmpty {
+                    openWindow(id: Constants.settingsWindowID)
+                }
+            }
+        }
+        .defaultPosition(.center)
+        .defaultSize(width: 1280, height: 720)
+        .environmentObject(appState)
+
+        SettingsWindow(appState: appState, onAppear: {})
+
+        MenuBarExtra(
+            "Picasa", image: "menubarIcon", isInserted: $showMenuBarExtra
+        ) {
+            MenuBarView()
         }.environmentObject(appState)
     }
 }
@@ -46,6 +56,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var appState: AppState?
 
+    private var isTitleBarVisible = false
+    private var hideTitleBarTimer: Timer?
+
     func applicationWillFinishLaunching(_ notification: Notification) {
         logger.info("---- app will finish launch")
         guard let appState else {
@@ -57,13 +70,63 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         appState.assignAppDelegate(self)
     }
 
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        logger.info("applicationDidFinishLaunching  .......")
+        for window in NSApplication.shared.windows {
+            // 检查窗口的标题是否匹配
+            if window.title == "Picasa" {
+//                window.titleVisibility = .hidden
+//                window.titlebarAppearsTransparent = true // 标题栏透明
+//                window.isOpaque = false // 设置窗口为非不透明
+//                window.isMovable = true
+                
+                // 移除标题栏的 style mask
+//                window.styleMask.remove(.titled)
+            }
+        }
+    }
+
     func application(_ application: NSApplication, open urls: [URL]) {
-        logger.info("application")
+        logger.info("application open urls")
         guard let currentImageURL = urls.first else {
             return
         }
         print("Received file URL: \(currentImageURL)")
         loadImages(from: currentImageURL)
+    }
+
+    @MainActor
+    func startShowWindowTitlebar() {
+        // 取消之前的定时器，避免重复调用
+        hideTitleBarTimer?.invalidate()
+
+        isTitleBarVisible = true
+        updateWindowTitleBarVisibility()
+        // 20秒后隐藏标题栏
+        hideTitleBarTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
+            self?.isTitleBarVisible = false
+            self?.updateWindowTitleBarVisibility()
+        }
+    }
+
+    @MainActor
+    func updateWindowTitleBarVisibility() {
+        for window in NSApplication.shared.windows {
+            // 检查窗口的标题是否匹配
+            if window.title == "Picasa" {
+                if isTitleBarVisible {
+                    window.titleVisibility = .visible
+                    window.styleMask.insert(.titled)
+                } else {
+                    window.titleVisibility = .hidden
+                    window.titlebarAppearsTransparent = true
+                    // 移除标题栏的 style mask
+                    window.styleMask.remove(.titled)
+                }
+
+                break
+            }
+        }
     }
 
     /// Opens the settings window and activates the app.
@@ -92,15 +155,30 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func loadImages(from url: URL) {
-        appState?.currentImageURL = url;
-        let directory = url.deletingLastPathComponent()
-        do {
-            let fileURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
-            appState?.imageFiles = fileURLs.filter { ["png", "jpg", "jpeg", "gif", "webp"].contains($0.pathExtension.lowercased()) }
-            appState?.selectedImageIndex = appState?.imageFiles.firstIndex(of: url) ?? 0
-            print("loadimagesfiles ...")
-        } catch {
-            print("Error reading contents of directory: \(error.localizedDescription)")
+        logger.warning("loadImages ....")
+        guard let appState else {
+            logger.warning("not have appState")
+            return
+        }
+        if appState.showCurDirImg == true {
+            let directory = url.deletingLastPathComponent()
+
+            do {
+                let fileURLs = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+                appState.imageFiles = fileURLs.filter { ["png", "jpg", "jpeg", "gif", "webp"].contains($0.pathExtension.lowercased()) }
+                appState.selectedImageIndex = appState.imageFiles.firstIndex(where: { item in
+                    print("item \(item.path) --- url: \(url.path)")
+                    return item.path == url.path
+                }) ?? 0
+                appState.currentImageURL = url
+                logger.warning("loadimagesfiles ... \(appState.selectedImageIndex)")
+            } catch {
+                logger.error("Error reading contents of directory: \(error.localizedDescription)")
+            }
+        } else {
+            appState.imageFiles.append(url)
+            appState.selectedImageIndex = 0
+            appState.currentImageURL = url
         }
     }
 }

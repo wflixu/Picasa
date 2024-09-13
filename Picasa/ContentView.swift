@@ -5,6 +5,7 @@
 //  Created by 李旭 on 2024/9/1.
 //
 
+import AppKit
 import SDWebImageSwiftUI
 import SwiftUI
 
@@ -15,7 +16,7 @@ struct ContentView: View {
     @EnvironmentObject var appState: AppState
 
     @State private var currentImage: NSImage?
-    @State private var scale: CGFloat = 0.5
+    @State private var scale: CGSize = .init(width: 1, height: 1)
 
     @State private var isNavBarVisible: Bool = true
     @State private var isCommandPressed: Bool = false
@@ -24,100 +25,30 @@ struct ContentView: View {
 
     @State var scrollOffset: CGPoint = .zero
 
-    @State var scaleAnchor: UnitPoint = .zero
+    @State private var anchorPoint: UnitPoint = .init(x: 1, y: 1)
+
+    @State private var magnification: CGFloat = 1.0
+    @State private var offset: CGSize = .zero
+
+    @State private var mouseLocation: CGPoint = .zero
+
+    @State private var showFileSelector = false
+
+    // ScrollView的偏移状态，用来实现拖动查看图片的不同部分
+    @State private var scrollViewOffset: CGSize = .zero
+    @State private var lastDragPosition: CGSize = .zero
+
+    @State private var scrollViewProxy: ScrollViewProxy? = nil
 
     var body: some View {
         GeometryReader { geometry in
-            
-        }
-        ZStack(alignment: .topLeading) {
-            HStack {
-                Text("x: \(scrollOffset.x)")
 
-                Text("y: \(scrollOffset.y)")
-            }
-            .foregroundStyle(.red)
-            .zIndex(100)
-            if let currentImage = currentImage {
-                ZoomableImageView(image: currentImage)
-                    // 视图铺满整个窗口
-            } else {
-                Text("No Image Selected")
-            }
-
-//            GeometryReader { geometry in
-//                ScrollView([.horizontal, .vertical]) {
-//                    VStack {
-//                        Text("suze: \(geometry.size)")
-//                            .font(.title)
-//                            .foregroundStyle(.red)
-//                    }
-//
-//                    if let currentImage = currentImage {
-
-//                        Image(nsImage: currentImage)
-//                            .resizable()
-//
-//                            .scaleEffect(scale)
-//                            .border(Color.red , width: 4)
-//                            .gesture(
-//                                MagnificationGesture()
-//                                    .onChanged { value in
-//                                        scale = value
-//                                    }
-//                            )
-//                            .gesture(
-//                                DragGesture(minimumDistance: 5)
-//                                    .onChanged { value in
-//
-//                                        scrollOffset.x += value.translation.height
-//                                        scrollOffset.y += value.translation.width
-//                                    }
-//                            )
-//                            .onAppear {
-//                                // 监听 Command 键的按下事件
-//                                NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
-//                                    if event.modifierFlags.contains(.command) {
-//                                        isCommandPressed = true
-//                                    } else {
-//                                        isCommandPressed = false
-//                                    }
-//                                    return event
-//                                }
-//                                NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
-//                                    if isCommandPressed { // 只有按下 Command 键时才缩放
-//                                        let delta = event.scrollingDeltaY
-//
-//                                        scale += delta / 500 // 根据滚轮的滚动量进行缩放
-//                                        return nil // 防止滚动事件传递给其他组件
-//                                    }
-//                                    return event
-//                                }
-//                            }
-//                    } else {
-//                        Text("No Image Selected")
-//                    }
-//                }
-//                .frame(width: geometry.size.width, height: geometry.size.height)
-//                .defaultScrollAnchor(.center)
-            ////                .scrollIndicators(.never)
-            ////                .offset(x: scrollOffset.x, y: scrollOffset.y)
-//                .onChange(of: appState.currentImageURL) { _, newURL in
-//                    print("watch image changeed \(geometry.size)")
-//                    if let url = newURL {
-//                        currentImage = NSImage(contentsOf: url)
-//                    } else {
-//                        loadImage(at: appState.selectedImageIndex)
-//                    }
-//                }
-//            }
-            // 左侧浮动导航条
-            if isNavBarVisible {
-                VStack {
+            ZStack(alignment: .leading) {
+                ScrollViewReader { scroller in
                     ScrollView {
-                        LazyVStack(spacing: 5) {
+                        LazyVStack(spacing: 4) {
                             ForEach(Array(appState.imageFiles.enumerated()), id: \.offset) { index, imageURL in
-                                ImageThumbnailView(imageURL: imageURL, isSelected: appState.selectedImageIndex == index)
+                                ImageThumbnailView(imageURL: imageURL, isSelected: appState.selectedImageIndex == index).id(index)
                                     .onTapGesture {
                                         loadImage(at: index)
                                     }
@@ -127,24 +58,123 @@ struct ContentView: View {
                         .padding()
                     }
                     .scrollIndicators(.never)
+                    .frame(width: 128, height: geometry.size.height) // 导航条宽度固定为160
+                    .background(Color.gray.opacity(0.6)) // 半透明背景
+                    .shadow(radius: 5)
+                    .onAppear {
+                        print("scrollViewProxy ....... init")
+                        scrollViewProxy = scroller
+                    }
+
+                    // 确保浮动在主视图上方
                 }
-                .frame(width: 160) // 导航条宽度固定为160
-                .background(Color.gray.opacity(0.4)) // 半透明背景
-                .shadow(radius: 5)
-                .ignoresSafeArea(.container)
-                .zIndex(20) // 确保浮动在主视图上方
+                .position(x: 64, y: geometry.size.height / 2)
+                .zIndex(20)
+
+//                HStack {
+//                    Text("anchor point: \(anchorPoint)")
+//                        .font(.title)
+//                        .foregroundColor(.red)
+//
+//                    Text("scale: \(scale)")
+//                        .font(.title)
+//                        .foregroundColor(.blue)
+//
+//                }.position(x: geometry.size.width / 2, y: 40)
+//                    .zIndex(40)
+
+                HStack {
+                    if let currentImage = currentImage {
+                        ScrollView([.horizontal, .vertical], showsIndicators: false) {
+                            // 使用 Image 组件加载图片，并设置其大小大于 ScrollView 的视图大小
+                            Image(nsImage: currentImage)
+                                .resizable()
+                                .frame(width: currentImage.size.width, height: currentImage.size.height)
+                                .scaleEffect(scale, anchor: anchorPoint)
+                                .offset(x: scrollViewOffset.width, y: scrollViewOffset.height) // 通过偏移来控制图片的位置
+                                .gesture(
+                                    DragGesture()
+                                        .onChanged { value in
+                                            // 计算拖动的偏移量，并更新状态
+                                            let newOffset = CGSize(
+                                                width: lastDragPosition.width + value.translation.width,
+                                                height: lastDragPosition.height + value.translation.height
+                                            )
+
+                                            // 将新的偏移值设置到视图中
+                                            scrollViewOffset = newOffset
+                                        }
+                                        .onEnded { _ in
+                                            // 保存拖动结束时的位置
+                                            lastDragPosition = scrollViewOffset
+                                        }
+                                )
+
+                                .onTapGesture {
+//                                    appState.appDelegate?.startShowWindowTitlebar()
+                                }
+                        }
+                        .clipped() // 保证视图的边缘不显示超出内容
+
+                    } else {
+                        HStack {
+                            Button("Select Image File") {
+                                showFileSelector = true
+                            }
+                            .fileImporter(isPresented: $showFileSelector, allowedContentTypes: [.png, .jpeg, .gif, .webP]) { result in
+                                handleFileSelect(result)
+                            }
+                        }
+                    }
+                }.frame(width: geometry.size.width, height: geometry.size.height)
+                    .zIndex(0)
             }
+            .frame(width: geometry.size.width, height: geometry.size.height)
+            
+            .onAppear(perform: appearHandler)
         }
-        .frame(width:800, height: 600)
-//        .edgesIgnoringSafeArea(.all)
-        .onAppear(perform: appearHandler)
+    }
+
+    func handleFileSelect(_ result: Result<URL, any Error>) {
+        switch result {
+        case .success(let fileUrl):
+            // gain access to the directory
+            let gotAccess = fileUrl.startAccessingSecurityScopedResource()
+            if !gotAccess {
+                logger.warning("not got access")
+                return
+            }
+            // access the directory URL
+
+            if let appDelegate = appState.appDelegate {
+                appDelegate.loadImages(from: fileUrl)
+                loadImage(at: appState.selectedImageIndex)
+            } else {
+                logger.warning("not appDelegate")
+            }
+
+        // release access
+//            fileUrl.stopAccessingSecurityScopedResource()
+        case .failure(let error):
+            // handle error
+            logger.error("error: \(error)")
+        }
+    }
+
+    // 将全局坐标转换为局部坐标
+    func convertGlobalToLocal(_ globalPoint: NSPoint, in geometry: GeometryProxy) -> CGPoint {
+        let windowPoint = CGPoint(x: globalPoint.x, y: NSScreen.main?.frame.height ?? 0 - globalPoint.y) // 修正 Y 方向
+        let localPoint = geometry.frame(in: .global).origin
+        return CGPoint(x: windowPoint.x - localPoint.x, y: windowPoint.y - localPoint.y)
     }
 
     func appearHandler() {
         setupKeyEvents()
+        loadImage(at: appState.selectedImageIndex)
     }
 
     private func loadImage(at index: Int) {
+        print("loadImage ........")
         guard appState.imageFiles.indices.contains(index) else { return }
         // 获取图片 URL
         let url = appState.imageFiles[index]
@@ -152,6 +182,7 @@ struct ContentView: View {
         // 更新 AppState 中的 currentImageURL 和 selectedImageIndex
         appState.currentImageURL = url
         appState.selectedImageIndex = index
+        scrollViewProxy?.scrollTo(index)
 
         // 尝试加载图像
         if let image = NSImage(contentsOf: url) {
@@ -162,11 +193,30 @@ struct ContentView: View {
     private func setupKeyEvents() {
         print("appear \(appState.selectedImageIndex)")
 
-        if let window = getWindow() {
-            self.window = window
-            hideTitleBar() // 初始隐藏
-        } else {
-            logger.info("can't get window")
+        // 监听 Command 键的按下事件
+        NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { event in
+            if event.modifierFlags.contains(.command) {
+                isCommandPressed = true
+            } else {
+                isCommandPressed = false
+            }
+            return event
+        }
+        NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { event in
+            if isCommandPressed { // 只有按下 Command 键时才缩放
+                let delta = event.scrollingDeltaY
+//                let localPos = event.locationInWindow
+//                if let window = NSApplication.shared.windows.first {
+//                    self.anchorPoint = UnitPoint(
+//                        x: localPos.x / window.frame.width,
+//                        y: 1 - localPos.y / window.frame.height
+//                    )
+//                }
+                scale.width += delta / 500
+                scale.height += delta / 500 // 根据滚轮的滚动量进行缩放
+                return nil // 防止滚动事件传递给其他组件
+            }
+            return event
         }
 
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
@@ -183,39 +233,6 @@ struct ContentView: View {
         }
     }
 
-    // 获取当前窗口
-    private func getWindow() -> NSWindow? {
-        return NSApplication.shared.windows.first { $0.isVisible }
-    }
-
-    // 显示标题栏和按钮
-    private func showTitleBar() {
-        if let window = window {
-            withAnimation {
-                window.titleVisibility = .visible
-                window.standardWindowButton(.closeButton)?.isHidden = false
-                window.standardWindowButton(.miniaturizeButton)?.isHidden = false
-                window.standardWindowButton(.zoomButton)?.isHidden = false
-            }
-        }
-        // 启动10秒定时器后隐藏
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            hideTitleBar()
-        }
-    }
-
-    // 隐藏标题栏和按钮
-    private func hideTitleBar() {
-        if let window = window {
-            withAnimation {
-                window.titleVisibility = .hidden
-                window.standardWindowButton(.closeButton)?.isHidden = true
-                window.standardWindowButton(.miniaturizeButton)?.isHidden = true
-                window.standardWindowButton(.zoomButton)?.isHidden = true
-            }
-        }
-    }
-
     private func showNextImage() {
         if appState.selectedImageIndex < appState.imageFiles.count - 1 {
             loadImage(at: appState.selectedImageIndex + 1)
@@ -225,73 +242,6 @@ struct ContentView: View {
     private func showPreviousImage() {
         if appState.selectedImageIndex > 0 {
             loadImage(at: appState.selectedImageIndex - 1)
-        }
-    }
-}
-
-struct ZoomableImageView: NSViewRepresentable {
-    var image: NSImage
-
-    func makeNSView(context: Context) -> NSImageView {
-        let imageView = NSImageView(image: image)
-        imageView.imageScaling = .scaleProportionallyUpOrDown
-        imageView.frame = CGRect(origin: .zero, size: CGSize(width: 800, height: 600))
-
-        let scrollView = NSScrollView()
-   
-        scrollView.hasVerticalScroller = false
-        scrollView.hasHorizontalScroller = false
-        scrollView.documentView = imageView
-        scrollView.frame = CGRect(origin:.zero, size: CGSize(width: 800, height: 600))
-        let magnificationGestureRecognizer = NSMagnificationGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleMagnification(_:)))
-        imageView.addGestureRecognizer(magnificationGestureRecognizer)
-
-        let panGestureRecognizer = NSPanGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handlePan(_:)))
-        imageView.addGestureRecognizer(panGestureRecognizer)
-
-        scrollView.addSubview(imageView)
-
-        return imageView
-    }
-
-    func updateNSView(_ nsView: NSImageView, context: Context) {
-        nsView.image = image
-    }
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    class Coordinator: NSObject {
-        var parent: ZoomableImageView
-        var currentScale: CGFloat = 1.0
-        var isCommandPressed: Bool = false
-
-        init(_ parent: ZoomableImageView) {
-            self.parent = parent
-            super.init()
-            // 监听键盘事件，检测 Command 键是否按下
-            NSEvent.addLocalMonitorForEvents(matching: [.flagsChanged, .keyDown]) { event in
-                if event.type == .flagsChanged {
-                    self.isCommandPressed = event.modifierFlags.contains(.command)
-                }
-                return event
-            }
-        }
-
-        @objc func handleMagnification(_ gestureRecognizer: NSMagnificationGestureRecognizer) {
-            let magnification = gestureRecognizer.magnification + 1.0
-            currentScale *= magnification
-
-            gestureRecognizer.view?.scaleUnitSquare(to: NSSize(width: magnification, height: magnification))
-            gestureRecognizer.magnification = 0 // Reset magnification after applying
-        }
-
-        @objc func handlePan(_ gestureRecognizer: NSPanGestureRecognizer) {
-            guard let view = gestureRecognizer.view else { return }
-            let translation = gestureRecognizer.translation(in: view)
-            gestureRecognizer.view?.setFrameOrigin(NSPoint(x: view.frame.origin.x + translation.x, y: view.frame.origin.y + translation.y))
-            gestureRecognizer.setTranslation(.zero, in: view)
         }
     }
 }
