@@ -12,13 +12,14 @@ struct ImageThumbnailView: View {
     let isSelected: Bool
     
     var body: some View {
-        VStack {
+        HStack {
             if let image = NSImage(contentsOf: imageURL) {
                 Image(nsImage: image)
                     .resizable()
-                    .scaledToFit()
                     .frame(width: 120, height: 90)
-                    .border(isSelected ? Color.blue : Color.clear, width: 2)
+                    .scaledToFill()
+                   
+                    .border(isSelected ? Color.white : Color.clear, width: 2)
             } else {
                 Rectangle()
                     .fill(Color.gray)
@@ -26,7 +27,6 @@ struct ImageThumbnailView: View {
                     .border(isSelected ? Color.blue : Color.clear, width: 4)
             }
         }
-        .padding(5)
     }
 }
 

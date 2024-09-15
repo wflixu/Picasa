@@ -34,41 +34,42 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
 
-            ZStack(alignment: .leading) {
-                ScrollViewReader { scroller in
-                    if appState.showCurDirImg {
-                        ScrollView {
-                            LazyVStack(spacing: 4) {
-                                ForEach(Array(appState.imageFiles.enumerated()), id: \.offset) { index, imageURL in
-                                    ImageThumbnailView(imageURL: imageURL, isSelected: appState.selectedImageIndex == index).id(index)
-                                        .onTapGesture {
-                                            loadImage(at: index)
-                                        }
+            ZStack(alignment: .topLeading) {
+                if isNavBarVisible {
+                    VStack {
+                        ScrollViewReader { scroller in
+
+                            ScrollView {
+                                LazyVStack {
+                                    ForEach(Array(appState.imageFiles.enumerated()), id: \.offset) { index, imageURL in
+                                        ImageThumbnailView(imageURL: imageURL, isSelected: appState.selectedImageIndex == index).id(index)
+                                            .onTapGesture {
+                                                loadImage(at: index)
+                                            }
+                                    }
                                 }
                             }
+                            .scrollIndicators(.never)
+                            .padding(4)
+                            .onAppear {
+                                print("scrollViewProxy ....... init")
+                                scrollViewProxy = scroller
+                            }
 
-                            .padding()
-                        }
-                        .scrollIndicators(.never)
-                        .frame(width: 128, height: geometry.size.height) // 导航条宽度固定为160
-                        .background(Color.gray.opacity(0.6)) // 半透明背景
-                        .shadow(radius: 5)
-                        .onAppear {
-                            print("scrollViewProxy ....... init")
-                            scrollViewProxy = scroller
+                            // 确保浮动在主视图上方
                         }
                     }
-
-                    // 确保浮动在主视图上方
+                    .padding([.top], 28)
+                    .frame(width: 128, height: (window?.frame.size.height ?? 720))
+                    .background(Color.gray.opacity(0.6)) // 半透明背景
+                    .zIndex(20)
                 }
-                .position(x: 64, y: geometry.size.height / 2)
-                .zIndex(20)
 
                 ToolBarView(scale: scale, onTap: { actionID in
                     handleToolbarTap(actionID)
                 })
                 .zIndex(20)
-                .position(x: geometry.size.width / 2, y: geometry.size.height - 60)
+                .position(x: geometry.size.width / 2, y: geometry.size.height - 32)
 
                 HStack {
                     if let currentImage = currentImage {
@@ -104,6 +105,7 @@ struct ContentView: View {
 
                     } else {
                         HStack {
+                           
                             Button("Select Image File") {
                                 showFileSelector = true
                             }
@@ -112,10 +114,11 @@ struct ContentView: View {
                             }
                         }
                     }
-                }.frame(width: geometry.size.width, height: geometry.size.height)
+                }.frame(width: geometry.size.width, height: geometry.size.height + 28)
                     .zIndex(10)
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
+
+            .ignoresSafeArea(.container)
             .onAppear(perform: appearHandler)
         }
     }
@@ -124,7 +127,7 @@ struct ContentView: View {
         print(id)
         switch id {
         case .toggleNav:
-            appState.showCurDirImg.toggle()
+            isNavBarVisible.toggle()
 
         case .scaleMinis:
             scale.width -= 0.1
@@ -180,6 +183,13 @@ struct ContentView: View {
     func appearHandler() {
         setupKeyEvents()
         loadImage(at: appState.selectedImageIndex)
+
+        if let window = NSApplication.shared.windows.first {
+            print("windwo \(window.title)-- \(window.frame.size)")
+            self.window = window
+        } else {
+            print("not get window")
+        }
     }
 
     private func loadImage(at index: Int) {

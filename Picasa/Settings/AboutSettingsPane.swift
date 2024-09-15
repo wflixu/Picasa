@@ -26,13 +26,14 @@ struct AboutSettingsPane: View {
 
     var body: some View {
         HStack {
+            Spacer()
             Image("Picasa")
                 .resizable()
                 .frame(width: 200, height: 200)
-
+           
             VStack(alignment: .leading) {
                 Text("Picasa")
-                    .font(.system(size: minFrameDimension / 7))
+                    .font(.largeTitle)
                     .foregroundStyle(.primary)
 
                 HStack(spacing: 4) {
@@ -44,6 +45,7 @@ struct AboutSettingsPane: View {
             }
             .fontWeight(.medium)
             .padding([.vertical, .trailing])
+            Spacer()
         }
         .frame(
             maxWidth: .infinity,

@@ -30,7 +30,7 @@ struct ToolBarView: View {
     }
     
     var indexFormated: String {
-        return "\(appState.selectedImageIndex)/\(appState.imageFiles.count)"
+        return "\(appState.selectedImageIndex + 1)/\(appState.imageFiles.count)"
     }
     
     var body: some View {

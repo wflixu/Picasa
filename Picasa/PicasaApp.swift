@@ -28,14 +28,14 @@ struct PicasaApp: App {
 
     var body: some Scene {
         WindowGroup("Picasa", id: "main") {
-            ContentView().onAppear {
-                if appState.showCurDirImg && appState.dirs.isEmpty {
-                    openWindow(id: Constants.settingsWindowID)
+            ContentView()
+                .onAppear {
+                    if appState.showCurDirImg && appState.dirs.isEmpty {
+                        openWindow(id: Constants.settingsWindowID)
+                    }
                 }
-            }
         }
         .defaultPosition(.center)
-        .defaultSize(width: 1280, height: 720)
         .environmentObject(appState)
 
         SettingsWindow(appState: appState, onAppear: {})
@@ -75,13 +75,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         for window in NSApplication.shared.windows {
             // 检查窗口的标题是否匹配
             if window.title == "Picasa" {
-//                window.titleVisibility = .hidden
                 window.titlebarAppearsTransparent = true // 标题栏透明
-//                window.isOpaque = false // 设置窗口为非不透明
-//                window.isMovable = true
-                
-                // 移除标题栏的 style mask
-//                window.styleMask.remove(.titled)
+                window.styleMask.insert(.fullSizeContentView)
             }
         }
     }
@@ -96,20 +91,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @MainActor
-    func startShowWindowTitlebar() {
-        // 取消之前的定时器，避免重复调用
-        hideTitleBarTimer?.invalidate()
-
-        isTitleBarVisible = true
-        updateWindowTitleBarVisibility()
-        // 20秒后隐藏标题栏
-        hideTitleBarTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
-            self?.isTitleBarVisible = false
-            self?.updateWindowTitleBarVisibility()
-        }
-    }
-
-    @MainActor
     func updateWindowTitleBarVisibility() {
         for window in NSApplication.shared.windows {
             // 检查窗口的标题是否匹配
@@ -117,6 +98,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if isTitleBarVisible {
                     window.titleVisibility = .visible
                     window.styleMask.insert(.titled)
+
                 } else {
                     window.titleVisibility = .hidden
                     window.titlebarAppearsTransparent = true
