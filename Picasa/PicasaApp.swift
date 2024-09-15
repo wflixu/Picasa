@@ -76,7 +76,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // 检查窗口的标题是否匹配
             if window.title == "Picasa" {
 //                window.titleVisibility = .hidden
-//                window.titlebarAppearsTransparent = true // 标题栏透明
+                window.titlebarAppearsTransparent = true // 标题栏透明
 //                window.isOpaque = false // 设置窗口为非不透明
 //                window.isMovable = true
                 

@@ -11,6 +11,7 @@
 		5C268DF02C8957D20089C17A /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C268DEF2C8957D20089C17A /* AppLogger.swift */; };
 		5C268DF22C897DC70089C17A /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C268DF12C897DC70089C17A /* Util.swift */; };
 		5C268DF42C89962C0089C17A /* ImageThumbnailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C268DF32C89962C0089C17A /* ImageThumbnailView.swift */; };
+		5C96038F2C96CF1D005FDB57 /* ToolBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C96038E2C96CF1D005FDB57 /* ToolBarView.swift */; };
 		5CA58CB72C91D79600AFB422 /* SettingsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA58CB62C91D79600AFB422 /* SettingsWindow.swift */; };
 		5CA58CB92C91D81E00AFB422 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA58CB82C91D81E00AFB422 /* Constants.swift */; };
 		5CA58CBB2C91D88700AFB422 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA58CBA2C91D88700AFB422 /* SettingsView.swift */; };
@@ -32,6 +33,7 @@
 		5C268DEF2C8957D20089C17A /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
 		5C268DF12C897DC70089C17A /* Util.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
 		5C268DF32C89962C0089C17A /* ImageThumbnailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ImageThumbnailView.swift; path = ../ImageThumbnailView.swift; sourceTree = "<group>"; };
+		5C96038E2C96CF1D005FDB57 /* ToolBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolBarView.swift; sourceTree = "<group>"; };
 		5CA58CB62C91D79600AFB422 /* SettingsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsWindow.swift; path = Picasa/SettingsWindow.swift; sourceTree = SOURCE_ROOT; };
 		5CA58CB82C91D81E00AFB422 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		5CA58CBA2C91D88700AFB422 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsView.swift; path = Picasa/SettingsView.swift; sourceTree = SOURCE_ROOT; };
@@ -130,6 +132,7 @@
 				5CA6413F2C92907100776714 /* Settings */,
 				5CA641402C92909E00776714 /* Main */,
 				5CA6413B2C92896E00776714 /* MenuBarView.swift */,
+				5C96038E2C96CF1D005FDB57 /* ToolBarView.swift */,
 				5CAC9D0B2C846A4500BCF8FA /* Assets.xcassets */,
 				5CAC9D102C846A4500BCF8FA /* Picasa.entitlements */,
 				5CAC9D0D2C846A4500BCF8FA /* Preview Content */,
@@ -239,6 +242,7 @@
 				5CA641452C92989200776714 /* GeneralSettingsPane.swift in Sources */,
 				5C268DF42C89962C0089C17A /* ImageThumbnailView.swift in Sources */,
 				5CA58CB72C91D79600AFB422 /* SettingsWindow.swift in Sources */,
+				5C96038F2C96CF1D005FDB57 /* ToolBarView.swift in Sources */,
 				5CA58CB92C91D81E00AFB422 /* Constants.swift in Sources */,
 				5CA6413C2C92896E00776714 /* MenuBarView.swift in Sources */,
 			);
@@ -374,7 +378,7 @@
 				CODE_SIGN_ENTITLEMENTS = Picasa/PicasaDebug.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2024.912.2;
+				CURRENT_PROJECT_VERSION = 2024.913.1;
 				DEVELOPMENT_ASSET_PATHS = "\"Picasa/Preview Content\"";
 				DEVELOPMENT_TEAM = 4L3563XCBN;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -408,7 +412,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "3rd Party Mac Developer Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2024.912.2;
+				CURRENT_PROJECT_VERSION = 2024.913.1;
 				DEVELOPMENT_ASSET_PATHS = "\"Picasa/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = 4L3563XCBN;
@@ -462,8 +466,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
 			};
 		};
 		5CAC9D162C846AF800BCF8FA /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */ = {
