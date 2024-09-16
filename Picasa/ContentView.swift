@@ -77,8 +77,8 @@ struct ContentView: View {
                             // 使用 Image 组件加载图片，并设置其大小大于 ScrollView 的视图大小
                             Image(nsImage: currentImage)
                                 .resizable()
-                                .frame(width: currentImage.size.width, height: currentImage.size.height)
-                                .scaleEffect(scale, anchor: .center)
+                                .frame(width: currentImage.size.width * scale.width, height: currentImage.size.height * scale.height )
+//                                .scaleEffect(scale, anchor: .center)
                                 .offset(x: scrollViewOffset.width, y: scrollViewOffset.height) // 通过偏移来控制图片的位置
                                 .gesture(
                                     DragGesture()
@@ -105,7 +105,6 @@ struct ContentView: View {
 
                     } else {
                         HStack {
-                           
                             Button("Select Image File") {
                                 showFileSelector = true
                             }
@@ -120,6 +119,9 @@ struct ContentView: View {
 
             .ignoresSafeArea(.container)
             .onAppear(perform: appearHandler)
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("open-image"))) { _ in
+                loadImage(at: appState.selectedImageIndex)
+            }
         }
     }
 
@@ -142,9 +144,26 @@ struct ContentView: View {
         case .showNext:
             showNextImage()
 
+        case .centerFill:
+            centerFillImage()
+
         default:
             logger.warning("no action after tap toolbar")
         }
+    }
+    
+    func centerFillImage() {
+        guard let win = window, let image = currentImage else {
+            logger.warning("no window or no image")
+            return
+        }
+        let minScale = min( win.frame.width / image.size.width,  win.frame.height / image.size.height)
+        
+        self.scale = CGSize(width: minScale, height: minScale)
+        
+        self.scrollViewOffset.width = 0
+        self.scrollViewOffset.height = 0
+        
     }
 
     func handleFileSelect(_ result: Result<URL, any Error>) {

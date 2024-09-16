@@ -8,8 +8,9 @@ An image Viewer for macOS power by SwiftUI .
 - [x] View images using open with 
 - [x] scan directory which selected image in
 - [x] zoom in and zoom out image use Mouse Wheel
-- [ ] view image toolbar
+- [x] view image toolbar
 - [ ] shortcut key settings
+- [ ] scale image at the mouse cursor position
 
 ## Download
 

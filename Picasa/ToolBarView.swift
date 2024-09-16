@@ -73,6 +73,16 @@ struct ToolBarView: View {
                     .foregroundColor(.white)
             }.buttonStyle(PlainButtonStyle())
             
+            Button(action: {
+                self.onTap(.centerFill)
+            }) {
+                Image(systemName: "rectangle.center.inset.filled")
+                    .font(.system(size: 20))
+                    .foregroundColor(.white)
+            }.buttonStyle(PlainButtonStyle())
+            
+
+            
             Divider()
             // toggle sidebar
             Button(action: {
@@ -108,4 +118,5 @@ enum ToolbarActionIdentifier: String, Hashable {
     case showNext
     case toggleNav
     case toggleInfo
+    case centerFill
 }

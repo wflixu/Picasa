@@ -27,7 +27,7 @@ struct PicasaApp: App {
     }
 
     var body: some Scene {
-        WindowGroup("Picasa", id: "main") {
+        Window("Picasa", id: "main") {
             ContentView()
                 .onAppear {
                     if appState.showCurDirImg && appState.dirs.isEmpty {
@@ -81,13 +81,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        // 当最后一个窗口关闭时，终止应用
+        return true
+    }
+
     func application(_ application: NSApplication, open urls: [URL]) {
         logger.info("application open urls")
         guard let currentImageURL = urls.first else {
+            logger.warning("no url in urls")
             return
         }
-        print("Received file URL: \(currentImageURL)")
+        logger.info("Received file URL: \(currentImageURL)")
         loadImages(from: currentImageURL)
+        NotificationCenter.default.post(name: Notification.Name("open-image"), object: nil)
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        print("applicationShouldTerminate")
+        return .terminateNow
     }
 
     @MainActor
