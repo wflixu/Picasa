@@ -27,15 +27,15 @@ struct PicasaApp: App {
     }
 
     var body: some Scene {
-        WindowGroup("Picasa", id: "main") {
-            ContentView().onAppear {
-                if appState.showCurDirImg && appState.dirs.isEmpty {
-                    openWindow(id: Constants.settingsWindowID)
+        Window("Picasa", id: "main") {
+            ContentView()
+                .onAppear {
+                    if appState.showCurDirImg && appState.dirs.isEmpty {
+                        openWindow(id: Constants.settingsWindowID)
+                    }
                 }
-            }
         }
         .defaultPosition(.center)
-        .defaultSize(width: 1280, height: 720)
         .environmentObject(appState)
 
         SettingsWindow(appState: appState, onAppear: {})
@@ -75,38 +75,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         for window in NSApplication.shared.windows {
             // 检查窗口的标题是否匹配
             if window.title == "Picasa" {
-//                window.titleVisibility = .hidden
-//                window.titlebarAppearsTransparent = true // 标题栏透明
-//                window.isOpaque = false // 设置窗口为非不透明
-//                window.isMovable = true
-                
-                // 移除标题栏的 style mask
-//                window.styleMask.remove(.titled)
+                window.titlebarAppearsTransparent = true // 标题栏透明
+                window.styleMask.insert(.fullSizeContentView)
             }
         }
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        // 当最后一个窗口关闭时，终止应用
+        return true
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
         logger.info("application open urls")
         guard let currentImageURL = urls.first else {
+            logger.warning("no url in urls")
             return
         }
-        print("Received file URL: \(currentImageURL)")
+        logger.info("Received file URL: \(currentImageURL)")
         loadImages(from: currentImageURL)
+        NotificationCenter.default.post(name: Notification.Name("open-image"), object: nil)
     }
 
-    @MainActor
-    func startShowWindowTitlebar() {
-        // 取消之前的定时器，避免重复调用
-        hideTitleBarTimer?.invalidate()
-
-        isTitleBarVisible = true
-        updateWindowTitleBarVisibility()
-        // 20秒后隐藏标题栏
-        hideTitleBarTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
-            self?.isTitleBarVisible = false
-            self?.updateWindowTitleBarVisibility()
-        }
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        print("applicationShouldTerminate")
+        return .terminateNow
     }
 
     @MainActor
@@ -117,6 +110,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 if isTitleBarVisible {
                     window.titleVisibility = .visible
                     window.styleMask.insert(.titled)
+
                 } else {
                     window.titleVisibility = .hidden
                     window.titlebarAppearsTransparent = true

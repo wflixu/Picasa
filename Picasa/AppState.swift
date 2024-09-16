@@ -122,16 +122,16 @@ class AppState: ObservableObject {
             NSApp.setActivationPolicy(policy)
         }
 
-//        if Context.hasActivated[self] == true {
-//            activate()
-//        } else {
-//            Context.hasActivated[self] = true
-//            logger.debug("First time activating app, so going through Dock")
-//            // hack to make sure the app properly activates for the first time
-//            NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first?.activate()
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-//                activate()
-//            }
-//        }
+        if Context.hasActivated[self] == true {
+            activate()
+        } else {
+            Context.hasActivated[self] = true
+            logger.debug("First time activating app, so going through Dock")
+            // hack to make sure the app properly activates for the first time
+            NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.dock").first?.activate()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                activate()
+            }
+        }
     }
 }

@@ -23,15 +23,6 @@ struct ContentView: View {
 
     @State private var window: NSWindow?
 
-    @State var scrollOffset: CGPoint = .zero
-
-    @State private var anchorPoint: UnitPoint = .init(x: 1, y: 1)
-
-    @State private var magnification: CGFloat = 1.0
-    @State private var offset: CGSize = .zero
-
-    @State private var mouseLocation: CGPoint = .zero
-
     @State private var showFileSelector = false
 
     // ScrollView的偏移状态，用来实现拖动查看图片的不同部分
@@ -43,45 +34,42 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
 
-            ZStack(alignment: .leading) {
-                ScrollViewReader { scroller in
-                    ScrollView {
-                        LazyVStack(spacing: 4) {
-                            ForEach(Array(appState.imageFiles.enumerated()), id: \.offset) { index, imageURL in
-                                ImageThumbnailView(imageURL: imageURL, isSelected: appState.selectedImageIndex == index).id(index)
-                                    .onTapGesture {
-                                        loadImage(at: index)
+            ZStack(alignment: .topLeading) {
+                if isNavBarVisible {
+                    VStack {
+                        ScrollViewReader { scroller in
+
+                            ScrollView {
+                                LazyVStack {
+                                    ForEach(Array(appState.imageFiles.enumerated()), id: \.offset) { index, imageURL in
+                                        ImageThumbnailView(imageURL: imageURL, isSelected: appState.selectedImageIndex == index).id(index)
+                                            .onTapGesture {
+                                                loadImage(at: index)
+                                            }
                                     }
+                                }
                             }
+                            .scrollIndicators(.never)
+                            .padding(4)
+                            .onAppear {
+                                print("scrollViewProxy ....... init")
+                                scrollViewProxy = scroller
+                            }
+
+                            // 确保浮动在主视图上方
                         }
-
-                        .padding()
                     }
-                    .scrollIndicators(.never)
-                    .frame(width: 128, height: geometry.size.height) // 导航条宽度固定为160
+                    .padding([.top], 28)
+                    .frame(width: 128, height: (window?.frame.size.height ?? 720))
                     .background(Color.gray.opacity(0.6)) // 半透明背景
-                    .shadow(radius: 5)
-                    .onAppear {
-                        print("scrollViewProxy ....... init")
-                        scrollViewProxy = scroller
-                    }
-
-                    // 确保浮动在主视图上方
+                    .zIndex(20)
                 }
-                .position(x: 64, y: geometry.size.height / 2)
-                .zIndex(20)
 
-//                HStack {
-//                    Text("anchor point: \(anchorPoint)")
-//                        .font(.title)
-//                        .foregroundColor(.red)
-//
-//                    Text("scale: \(scale)")
-//                        .font(.title)
-//                        .foregroundColor(.blue)
-//
-//                }.position(x: geometry.size.width / 2, y: 40)
-//                    .zIndex(40)
+                ToolBarView(scale: scale, onTap: { actionID in
+                    handleToolbarTap(actionID)
+                })
+                .zIndex(20)
+                .position(x: geometry.size.width / 2, y: geometry.size.height - 32)
 
                 HStack {
                     if let currentImage = currentImage {
@@ -89,8 +77,8 @@ struct ContentView: View {
                             // 使用 Image 组件加载图片，并设置其大小大于 ScrollView 的视图大小
                             Image(nsImage: currentImage)
                                 .resizable()
-                                .frame(width: currentImage.size.width, height: currentImage.size.height)
-                                .scaleEffect(scale, anchor: anchorPoint)
+                                .frame(width: currentImage.size.width * scale.width, height: currentImage.size.height * scale.height )
+//                                .scaleEffect(scale, anchor: .center)
                                 .offset(x: scrollViewOffset.width, y: scrollViewOffset.height) // 通过偏移来控制图片的位置
                                 .gesture(
                                     DragGesture()
@@ -114,7 +102,6 @@ struct ContentView: View {
 //                                    appState.appDelegate?.startShowWindowTitlebar()
                                 }
                         }
-                        .clipped() // 保证视图的边缘不显示超出内容
 
                     } else {
                         HStack {
@@ -126,13 +113,57 @@ struct ContentView: View {
                             }
                         }
                     }
-                }.frame(width: geometry.size.width, height: geometry.size.height)
-                    .zIndex(0)
+                }.frame(width: geometry.size.width, height: geometry.size.height + 28)
+                    .zIndex(10)
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
-            
+
+            .ignoresSafeArea(.container)
             .onAppear(perform: appearHandler)
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("open-image"))) { _ in
+                loadImage(at: appState.selectedImageIndex)
+            }
         }
+    }
+
+    func handleToolbarTap(_ id: ToolbarActionIdentifier) {
+        print(id)
+        switch id {
+        case .toggleNav:
+            isNavBarVisible.toggle()
+
+        case .scaleMinis:
+            scale.width -= 0.1
+            scale.height -= 0.1
+
+        case .scalePlus:
+            scale.width += 0.1
+            scale.height += 0.1
+
+        case .showPrev:
+            showPreviousImage()
+        case .showNext:
+            showNextImage()
+
+        case .centerFill:
+            centerFillImage()
+
+        default:
+            logger.warning("no action after tap toolbar")
+        }
+    }
+    
+    func centerFillImage() {
+        guard let win = window, let image = currentImage else {
+            logger.warning("no window or no image")
+            return
+        }
+        let minScale = min( win.frame.width / image.size.width,  win.frame.height / image.size.height)
+        
+        self.scale = CGSize(width: minScale, height: minScale)
+        
+        self.scrollViewOffset.width = 0
+        self.scrollViewOffset.height = 0
+        
     }
 
     func handleFileSelect(_ result: Result<URL, any Error>) {
@@ -171,6 +202,13 @@ struct ContentView: View {
     func appearHandler() {
         setupKeyEvents()
         loadImage(at: appState.selectedImageIndex)
+
+        if let window = NSApplication.shared.windows.first {
+            print("windwo \(window.title)-- \(window.frame.size)")
+            self.window = window
+        } else {
+            print("not get window")
+        }
     }
 
     private func loadImage(at index: Int) {

@@ -62,10 +62,16 @@ struct GeneralSettingsPane: View {
 
             if showCurDirImg {
                 HStack {
-                    Button("Add") {
+                    Spacer()
+                  
+                    Button(action: {
                         showDirImporter = true
-                    }
-                }
+                    }) {
+                        Image(systemName: "folder.badge.plus")
+                            .font(.system(size: 20))
+                            .foregroundColor(.primary)
+                    }.buttonStyle(PlainButtonStyle())
+                }.padding([.leading, .trailing], 16)
 
                 List {
                     ForEach(Array(permissionDirs.enumerated()), id: \.element.path) { index, dir in
